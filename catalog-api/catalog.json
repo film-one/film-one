@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "updated_at": "2026-10-07T00:00:00Z",
+  "items": [
+    {
+      "id": "demo-1",
+      "title": "Последний горизонт",
+      "original_title": "The Last Horizon",
+      "year": 2026,
+      "genre": "Фантастика",
+      "rating": 8.4,
+      "type": "movie",
+      "poster": "",
+      "description": "Демонстрационный фильм. Замени эту запись своей карточкой.",
+      "video_url": ""
+    },
+    {
+      "id": "demo-2",
+      "title": "Ночной сигнал",
+      "original_title": "Night Signal",
+      "year": 2026,
+      "genre": "Ужасы",
+      "rating": 8.0,
+      "type": "movie",
+      "poster": "",
+      "description": "Демонстрационный фильм.",
+      "video_url": ""
+    },
+    {
+      "id": "demo-3",
+      "title": "Колония",
+      "original_title": "The Colony",
+      "year": 2025,
+      "genre": "Драма",
+      "rating": 7.7,
+      "type": "series",
+      "poster": "",
+      "description": "Демонстрационный сериал.",
+      "video_url": ""
+    }
+  ]
+}
