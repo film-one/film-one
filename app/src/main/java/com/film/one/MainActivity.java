@@ -22,7 +22,7 @@ public class MainActivity extends Activity {
     void focusSearch(){if(search==null)showHome();search.requestFocus();((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(search,InputMethodManager.SHOW_IMPLICIT);}
     void showHome(){body.removeAllViews();heading("Фильмы и сериалы","Каталог обновляется автоматически");addSearch();visible.clear();sectionPages.clear();for(CatalogRepository.Section s:repo.sections()){if(s.id.equals("new_movies")||s.id.equals("popular_movies")||s.id.equals("popular_tv")||s.id.equals("top_movies")||s.id.equals("top_tv"))loadSection(s,1,true);}genres();}
     void showCatalog(){body.removeAllViews();heading("Каталог","Постраничная загрузка — без загрузки десятков тысяч записей сразу");addSearch();sectionPages.clear();for(CatalogRepository.Section s:repo.sections())loadSection(s,1,true);}
-    void loadSection(CatalogRepository.Section s,int page,boolean append){repo.loadSection(s,page,list->{runOnUiThread(()->{if(list.isEmpty())return;visible.addAll(list);sectionPages.put(s.id,page);section(s,page,list);});});}
+    void loadSection(CatalogRepository.Section s,int page,boolean append){repo.loadSection(s,page,list->{runOnUiThread(()->{if(list.isEmpty())return;visible.addAll(list);sectionPages.put(s.id,page);section(s.title,page,list);});});}
     void section(String name,int page,List<Movie> list){
         LinearLayout block=new LinearLayout(this);block.setOrientation(LinearLayout.VERTICAL);
         TextView h=tv(name+(page>1?"  •  страница "+page:""),19,WHITE);h.setTypeface(null,1);block.addView(h,new LinearLayout.LayoutParams(-1,dp(42)));
