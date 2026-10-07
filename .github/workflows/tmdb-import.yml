@@ -1,0 +1,144 @@
+name: TMDB Import
+
+on:
+  workflow_dispatch:
+    inputs:
+      query:
+        description: "Movie or TV series name"
+        required: true
+        type: string
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install requests
+        run: pip install requests
+
+      - name: Import from TMDB
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          MOVIE_QUERY: ${{ inputs.query }}
+        run: |
+          python - <<'PY'
+          import os
+          import json
+          import requests
+
+          api_key = os.environ["TMDB_API_KEY"]
+          query = os.environ["MOVIE_QUERY"]
+
+          url = "https://api.themoviedb.org/3/search/multi"
+
+          params = {
+              "api_key": api_key,
+              "query": query,
+              "language": "ru-RU",
+              "include_adult": "false"
+          }
+
+          response = requests.get(url, params=params, timeout=30)
+          response.raise_for_status()
+
+          results = response.json().get("results", [])
+
+          if not results:
+              raise SystemExit("TMDB: nothing found")
+
+          item = next(
+              (
+                  x for x in results
+                  if x.get("media_type") in ("movie", "tv")
+              ),
+              None
+          )
+
+          if not item:
+              raise SystemExit("TMDB: movie or TV series not found")
+
+          media_type = item.get("media_type")
+
+          if media_type == "movie":
+              title = item.get("title") or item.get("original_title")
+              date = item.get("release_date", "")
+          else:
+              title = item.get("name") or item.get("original_name")
+              date = item.get("first_air_date", "")
+
+          movie = {
+              "tmdb_id": item.get("id"),
+              "type": media_type,
+              "title": title,
+              "original_title": (
+                  item.get("original_title")
+                  if media_type == "movie"
+                  else item.get("original_name")
+              ),
+              "year": date[:4] if date else "",
+              "rating": item.get("vote_average"),
+              "overview": item.get("overview", ""),
+              "poster": (
+                  "https://image.tmdb.org/t/p/w500"
+                  + item["poster_path"]
+                  if item.get("poster_path")
+                  else ""
+              ),
+              "backdrop": (
+                  "https://image.tmdb.org/t/p/w1280"
+                  + item["backdrop_path"]
+                  if item.get("backdrop_path")
+                  else ""
+              )
+          }
+
+          path = "catalog.json"
+
+          if os.path.exists(path):
+              try:
+                  with open(path, "r", encoding="utf-8") as f:
+                      catalog = json.load(f)
+              except Exception:
+                  catalog = []
+          else:
+              catalog = []
+
+          if not isinstance(catalog, list):
+              catalog = []
+
+          if not any(
+              str(x.get("tmdb_id")) == str(movie["tmdb_id"])
+              for x in catalog
+          ):
+              catalog.append(movie)
+
+          with open(path, "w", encoding="utf-8") as f:
+              json.dump(
+                  catalog,
+                  f,
+                  ensure_ascii=False,
+                  indent=2
+              )
+
+          print("Added:", title)
+          print("TMDB ID:", item.get("id"))
+          PY
+
+      - name: Commit catalog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add catalog.json
+
+          git diff --cached --quiet || git commit -m "Add movie from TMDB"
+
+          git push
