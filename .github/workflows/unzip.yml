@@ -1,0 +1,22 @@
+name: Unzip project
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract and commit
+        run: |
+          unzip -q film-one-github-ready.zip -d /tmp/x
+          SRC=$(find /tmp/x -maxdepth 2 -name settings.gradle -printf '%h\n' | head -n 1)
+          cp -a "$SRC"/. .
+          git rm -q --cached film-one-github-ready.zip
+          rm -f film-one-github-ready.zip
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -A
+          git commit -m "Extract project"
+          git push
