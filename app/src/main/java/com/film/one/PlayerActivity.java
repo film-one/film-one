@@ -1,0 +1,11 @@
+package com.film.one;
+
+import android.app.*;import android.os.*;import android.content.*;import android.content.pm.ActivityInfo;import android.graphics.Color;import android.view.*;import android.widget.*;import androidx.media3.common.MediaItem;import androidx.media3.common.MimeTypes;import androidx.media3.exoplayer.ExoPlayer;import androidx.media3.ui.PlayerView;import androidx.media3.common.util.UnstableApi;
+
+@UnstableApi public class PlayerActivity extends Activity {
+    PlayerView playerView;ExoPlayer player;
+    @Override protected void onCreate(Bundle b){super.onCreate(b);getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);String url=getIntent().getStringExtra("video_url");if(url==null||url.trim().isEmpty()){Toast.makeText(this,"Видео источник не указан",Toast.LENGTH_LONG).show();finish();return;}FrameLayout root=new FrameLayout(this);root.setBackgroundColor(Color.BLACK);playerView=new PlayerView(this);playerView.setUseController(true);playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);root.addView(playerView,new FrameLayout.LayoutParams(-1,-1));Button full=new Button(this);full.setText("⛶");full.setTextSize(20);full.setTextColor(Color.WHITE);full.setBackgroundColor(Color.TRANSPARENT);FrameLayout.LayoutParams fp=new FrameLayout.LayoutParams(70,70,Gravity.TOP|Gravity.END);fp.topMargin=24;fp.rightMargin=12;root.addView(full,fp);full.setOnClickListener(v->toggleFullscreen());setContentView(root);player=new ExoPlayer.Builder(this).build();playerView.setPlayer(player);MediaItem.Builder mb=new MediaItem.Builder().setUri(url);if(url.toLowerCase().contains(".m3u8")||url.toLowerCase().contains("m3u8"))mb.setMimeType(MimeTypes.APPLICATION_M3U8);player.setMediaItem(mb.build());player.prepare();player.play();}
+    void toggleFullscreen(){if(getRequestedOrientation()==ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)getRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);else getRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);}
+    @Override protected void onStop(){super.onStop();if(player!=null)player.pause();}
+    @Override protected void onDestroy(){if(playerView!=null)playerView.setPlayer(null);if(player!=null){player.release();player=null;}super.onDestroy();}
+}

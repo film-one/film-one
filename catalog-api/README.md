@@ -1,30 +1,22 @@
 # film.one Catalog API
 
-Սա ֆիլմերի/սերիալների կատալոգի փոքր API-ն է։ Այն օգտագործում է TMDB-ը **միայն մետատվյալների** համար՝ անուն, նկարագրություն, տարի, rating, poster և այլն։ Ֆիլմերի ամբողջական տեսանյութերը TMDB-ից չեն տրամադրվում։
+Սա optional server-side API-ն է։ Հիմնական catalog browse/search-ը կարող է աշխատել GitHub Pages static catalog-ով, իսկ այս API-ն անհրաժեշտ է, եթե ուզում ես server-side TMDB search և TV-ի մանրամասն seasons/episodes տվյալներ։
 
-## 1. Կարգավորում
-
-Ստեղծիր TMDB API key և environment-ում դիր.
+## Environment
 
 ```bash
 export TMDB_API_KEY="YOUR_TMDB_KEY"
 export FILM_ONE_ADMIN_TOKEN="YOUR_LONG_RANDOM_TOKEN"
-```
-
-## 2. Գործարկել
-
-```bash
 python3 server.py
 ```
 
-API-ն կլինի `http://SERVER:8080/`։ Production-ում օգտագործիր HTTPS reverse proxy (օր. Nginx/Caddy)։
+Endpoints:
 
-## 3. Android-ում
+- `GET /api/search?q=...` — public TMDB metadata search, առանց TMDB key-ը Android-ում պահելու
+- `GET /api/title?type=tv&id=...` — TV details + seasons/credits
+- `GET /api/admin/search?q=...&token=...` — admin search
+- `POST /api/add?token=...` — legacy manual catalog add
 
-`app/src/main/assets/config.json`-ում `catalog_url`-ը դիր `https://YOUR-DOMAIN/catalog.json`։
+Production-ում օգտագործիր HTTPS reverse proxy (Nginx/Caddy) և պահիր secrets-ը միայն server environment-ում։
 
-Admin-ը հավելվածի `Настройки → Админ-панель` բաժնում որոնում է ֆիլմը, ընտրում արդյունքը և ավելացնում կատալոգ։ Admin token-ը պետք է նույնը լինի server-ի `FILM_ONE_ADMIN_TOKEN`-ի հետ։
-
-### Կարևոր
-
-Admin endpoint-ը առանց authentication չթողնես։ Token-ը փոխիր իրական երկար random արժեքով և API-ն բացիր HTTPS-ով։
+Android-ում `app/src/main/assets/config.json`-ի `api_base_url`-ը կարող է մնալ դատարկ․ այդ դեպքում որոնումը օգտագործում է GitHub Pages-ի static search shards-ը։ Եթե API-ն deploy անես, այստեղ դիր նրա HTTPS URL-ը՝ server-side TMDB search և series details ստանալու համար։

@@ -1,1 +1,5 @@
-{"catalog_url":"https://YOUR-DOMAIN.example/catalog.json"}
+{
+  "catalog_index_url": "https://film-one.github.io/film-one/index.json",
+  "api_base_url": "",
+  "tmdb_image_base": "https://image.tmdb.org/t/p/"
+}

@@ -1,31 +1,50 @@
-# film.one — автоматический каталог
+# film.one
 
-Русский Android-клиент с минимальной структурой. Приложение НЕ хранит каталог фильмов внутри APK: оно загружает его из одного online JSON-файла.
+Русский Android-клиент каталога фильмов и сериалов с удалённым paginated-каталогом, TMDB metadata import и Media3 player.
 
-## Как это работает
+## Архитектура
 
-`film.one` → `catalog.json` на твоём сервере → фильмы/сериалы появляются автоматически.
+`TMDB API → GitHub Actions → catalog/* → GitHub Pages → Android app`
 
-### Что менять для добавления фильма
-Только `catalog.json` на сервере. APK для обычного добавления фильма пересобирать не нужно.
+Приложение не хранит десятки тысяч карточек внутри APK. Оно загружает только нужные страницы каталога и кэширует их в памяти. Поэтому добавление новых записей в каталог не требует новой сборки APK.
 
-Пример:
-```json
-{
-  "id": "film-101",
-  "title": "Мой фильм",
-  "original_title": "My Movie",
-  "year": 2026,
-  "genre": "Фантастика",
-  "rating": 8.1,
-  "type": "movie",
-  "poster": "https://example.com/poster.jpg",
-  "description": "Описание",
-  "video_url": "https://example.com/video.m3u8"
-}
+### Каталог
+
+Каталог разбит на страницы по 40 записей:
+
+```text
+catalog/index.json
+catalog/new_movies/page-1.json
+catalog/popular_movies/page-1.json
+catalog/top_movies/page-1.json
+catalog/popular_tv/page-1.json
+...
 ```
 
-## Важно
-Это каталог/клиентная часть. Самостоятельно искать и скачивать фильмы из интернета приложение не будет. `video_url` должен указывать на источник, которым ты вправе пользоваться.
+Bulk importer использует TMDB pagination и дедупликацию по `type + tmdb_id`. По умолчанию workflow стремится к 50 000 уникальных названий; вручную можно указать до 80 000+ через `target_count`.
 
-Для production используй HTTPS.
+### TMDB secret
+
+В repository должен существовать secret `TMDB_API_KEY`. Он используется только GitHub Actions/server-side и никогда не попадает в Android source code.
+
+TMDB используется для metadata/artwork. Полные видеоисточники TMDB не предоставляет; `video_url` и `sources` предназначены только для разрешённых пользователем источников.
+
+### GitHub Pages
+
+Один раз открой:
+
+`Settings → Pages → Build and deployment → Source → GitHub Actions`
+
+После этого workflow `Publish Catalog` публикует `/catalog` по адресу:
+
+`https://film-one.github.io/film-one/index.json`
+
+### Video
+
+Android использует AndroidX Media3 ExoPlayer. Поддержվում են MP4 и HLS/M3U8; subtitle/audio track selection зависит от того, какие tracks предоставляет конкретный source.
+
+### Build APK
+
+GitHub Actions → `Build APK` → `Run workflow`.
+
+APK-ը կհայտնվի workflow-ի Artifacts բաժնում։

@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "updated_at": "2026-10-07T00:00:00Z",
+  "total": 1,
+  "page_size": 40,
+  "sections": [
+    {"id":"new_movies","title":"Новые фильмы","type":"movie","pages":1,"path_pattern":"new_movies/page-{page}.json"},
+    {"id":"popular_movies","title":"Популярные фильмы","type":"movie","pages":1,"path_pattern":"popular_movies/page-{page}.json"},
+    {"id":"top_movies","title":"Лучшие фильмы","type":"movie","pages":1,"path_pattern":"top_movies/page-{page}.json"},
+    {"id":"upcoming_movies","title":"Предстоящие фильмы","type":"movie","pages":1,"path_pattern":"upcoming_movies/page-{page}.json"},
+    {"id":"popular_tv","title":"Популярные сериалы","type":"tv","pages":1,"path_pattern":"popular_tv/page-{page}.json"},
+    {"id":"top_tv","title":"Лучшие сериалы","type":"tv","pages":1,"path_pattern":"top_tv/page-{page}.json"},
+    {"id":"airing_tv","title":"Выходят сегодня","type":"tv","pages":1,"path_pattern":"airing_tv/page-{page}.json"},
+    {"id":"onair_tv","title":"Сейчас в эфире","type":"tv","pages":1,"path_pattern":"onair_tv/page-{page}.json"}
+  ],
+  "genres": [{"id":28,"name":"Боевик"},{"id":12,"name":"Приключения"},{"id":16,"name":"Мультфильм"},{"id":35,"name":"Комедия"},{"id":80,"name":"Криминал"},{"id":99,"name":"Документальный"},{"id":18,"name":"Драма"},{"id":10751,"name":"Семейный"},{"id":14,"name":"Фэнтези"},{"id":36,"name":"История"},{"id":27,"name":"Ужасы"},{"id":9648,"name":"Детектив"},{"id":10749,"name":"Мелодрама"},{"id":878,"name":"Фантастика"},{"id":53,"name":"Триллер"},{"id":10752,"name":"Военный"},{"id":37,"name":"Вестерн"}]
+}
