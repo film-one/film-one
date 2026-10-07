@@ -5,7 +5,7 @@ import android.app.*;import android.os.*;import android.graphics.*;import androi
 public class MainActivity extends Activity {
  static final int BG=Color.rgb(7,7,9),PANEL=Color.rgb(20,20,23),WHITE=Color.WHITE,MUTED=Color.rgb(160,160,168),RED=Color.rgb(229,9,20);
  LinearLayout root,body,bottom; EditText search; ArrayList<Movie> movies=new ArrayList<>(); HashSet<String> favorites=new HashSet<>(); int currentTab=0; String catalogUrl="";
- static class Movie {String id,title,year,genre,rating,type,poster,description,video; Movie(JSONObject o)throws Exception{id=o.optString("id");title=o.optString("title");year=o.optString("year");genre=o.optString("genre");rating=o.optString("rating");type=o.optString("type","movie");poster=o.optString("poster");description=o.optString("description");video=o.optString("video_url");}}
+ static class Movie {String id,title,year,genre,rating,type,poster,description,video; Movie(){} Movie(JSONObject o)throws Exception{id=o.optString("id");title=o.optString("title");year=o.optString("year");genre=o.optString("genre");rating=o.optString("rating");type=o.optString("type","movie");poster=o.optString("poster");description=o.optString("description");video=o.optString("video_url");}}
  @Override public void onCreate(Bundle b){super.onCreate(b);getWindow().setStatusBarColor(BG);getWindow().setNavigationBarColor(BG);loadConfig();build();loadRemoteCatalog();}
  void loadConfig(){try{InputStream in=getAssets().open("config.json");String s=read(in);catalogUrl=new JSONObject(s).optString("catalog_url");}catch(Exception e){}}
  String read(InputStream in)throws Exception{ByteArrayOutputStream o=new ByteArrayOutputStream();byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)o.write(b,0,n);return o.toString("UTF-8");}
