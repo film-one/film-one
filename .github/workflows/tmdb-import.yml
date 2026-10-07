@@ -1,0 +1,82 @@
+name: TMDB Import
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Import mode"
+        required: true
+        default: bulk
+        type: choice
+        options: [bulk, search]
+      query:
+        description: "Movie/TV name for search mode"
+        required: false
+        type: string
+      target_count:
+        description: "Target unique titles for bulk import"
+        required: true
+        default: "50000"
+        type: string
+      max_pages_per_feed:
+        description: "Maximum TMDB pages per feed"
+        required: true
+        default: "500"
+        type: string
+  schedule:
+    - cron: "15 3 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install requests
+        run: python -m pip install --upgrade requests
+
+      - name: Bulk catalog import
+        if: ${{ github.event_name == 'schedule' || inputs.mode == 'bulk' }}
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          TARGET_COUNT: ${{ github.event_name == 'schedule' && '50000' || inputs.target_count }}
+          MAX_PAGES_PER_FEED: ${{ github.event_name == 'schedule' && '500' || inputs.max_pages_per_feed }}
+        run: python scripts/tmdb_catalog.py
+
+      - name: Legacy single-title import
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'search' }}
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          MOVIE_QUERY: ${{ inputs.query }}
+        run: |
+          python - <<'PY'
+          import os,json,requests,pathlib
+          key=os.environ['TMDB_API_KEY']; q=os.environ['MOVIE_QUERY']
+          r=requests.get('https://api.themoviedb.org/3/search/multi',headers={'Authorization':f'Bearer {key}','accept':'application/json'},params={'query':q,'language':'ru-RU','include_adult':'false'},timeout=30);r.raise_for_status()
+          x=next((x for x in r.json().get('results',[]) if x.get('media_type') in ('movie','tv')),None)
+          if not x: raise SystemExit('TMDB: nothing found')
+          typ=x['media_type']; date=x.get('release_date') or x.get('first_air_date') or ''
+          item={'tmdb_id':x['id'],'type':typ,'title':x.get('title') or x.get('name'),'original_title':x.get('original_title') or x.get('original_name'),'year':date[:4],'rating':x.get('vote_average',0),'overview':x.get('overview',''),'poster':'https://image.tmdb.org/t/p/w500'+x['poster_path'] if x.get('poster_path') else '','backdrop':'https://image.tmdb.org/t/p/w1280'+x['backdrop_path'] if x.get('backdrop_path') else '','video_url':'','sources':[],'audio':[],'subtitles':[]}
+          p=pathlib.Path('catalog.json'); data=json.loads(p.read_text()) if p.exists() else []
+          if not isinstance(data,list): data=[]
+          if not any(str(a.get('tmdb_id'))==str(item['tmdb_id']) for a in data): data.append(item)
+          p.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8')
+          print('Added:',item['title'])
+          PY
+
+      - name: Commit catalog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalog scripts/tmdb_catalog.py catalog.json
+          git diff --cached --quiet || git commit -m "Update TMDB catalog"
+          git push
